@@ -9,23 +9,23 @@ import re
 import argparse
 import json
 
+
 class color:
     OKGREEN = '\033[92m'
     WARNING = '\u001b[31m'
     ENDC = '\033[0m'
 
-def checkEmail():
-    print("First we will check if your email is affected")
-    numberEmail = input("How many email adresses do you want to check: ")
+
+"""Prompts for email address a given time and  """
+def checkEmail(numberEmail):
     for i in range(int(numberEmail)):
         email = input("Enter your email: ")
         try:
-             r = requests.get('https://haveibeenpwned.com/api/v2/breachedaccount/' + email) #+ '?truncateResponse=true')
+             r = requests.get('https://haveibeenpwned.com/api/v2/breachedaccount/' + email)
         except Exception as error:
             print(color.WARNING + 'ERROR', "Can\'t connect to database")
         else:
             if r:
-                 # print(color.WARNING + r.text + "\n")
                  dic = json.loads(r.text)
                  print(color.WARNING+"\nYour email has been found in following leaks:\n")
                  for leaks in dic:
@@ -34,9 +34,7 @@ def checkEmail():
             else:
                  print(color.OKGREEN + "Your email isn\'t affected :)\n"+color.ENDC)
 
-def checkPassword():
-    print("\nNow lets check if your password is unsafe and occurs in the database\nThe passwords you insert are hashed and only a certain part of the hash is sent to the API")
-    numberPassword = input("How many passwords do you want to check: ")
+def checkPassword(numberPassword):
     for i in range(int(numberPassword)):
         try:
             password = getpass.getpass()
@@ -54,7 +52,6 @@ def checkPassword():
             print(color.WARNING + 'ERROR', '- Can not connect to API!')
         else:
             s = re.search(lastChars+".*",r.text)
-            #a = re.search(":.*",s.group())
             if s:
                  print(color.WARNING + 'Found a match!')
                  a = re.search(":.*",s.group())
@@ -67,8 +64,12 @@ def checkPassword():
 def main():
     print("This program can check if credentials are listed in the database off Troy Hunt (pwnedpasswords.com)\n\n")
     while True:
-        checkEmail()
-        checkPassword()
+        print("First we will check if your email is affected")
+        numberEmail = input("How many email adresses do you want to check: ")
+        checkEmail(numberEmail)
+        print("\nNow lets check if your password is unsafe and occurs in the database\nThe passwords you insert are hashed and only a certain part of the hash is sent to the API")
+        numberPassword = input("How many passwords do you want to check: ")
+        checkPassword(numberPassword)
         answer = input("Do you want to continue?:")
         if answer.lower().startswith("y"):
             print("\nRestarting....\n\n")
@@ -81,6 +82,6 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print('\n Interrupted by human...')
+        print('\nInterrupted by human...')
         sys.exit(0)
 
