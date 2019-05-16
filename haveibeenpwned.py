@@ -9,7 +9,7 @@ import re
 import argparse
 import json
 import logging
-
+from huepy import *
 
 
 headers = {
@@ -43,12 +43,11 @@ def checkEmail(numberEmail):
             logger.debug(response_code[r.status_code])
             if r:
                  dic = json.loads(r.text)
-                 print(color.WARNING+"\nYour email has been found in following leaks:\n")
+                 print(bold(red("\nYour email has been found in following leaks:\n")))
                  for leaks in dic:
-                     print("[*]Breach {Name}({Domain}) has been leaked on the {BreachDate} and {PwnCount} accounts where affected.\n\n".format(**leaks))
-                 print(color.ENDC)
+                     print(bad("Breach {Name}({Domain}) has been leaked on the {BreachDate} and {PwnCount} accounts where affected.\n\n".format(**leaks)))
             else:
-                 print(color.OKGREEN + "Your email isn\'t affected :)\n"+color.ENDC)
+                 print(good(green("Your email isn\'t affected :)\n")))
 
 def checkPassword(numberPassword):
     for i in range(int(numberPassword)):
@@ -57,7 +56,7 @@ def checkPassword(numberPassword):
         except Exception as error:
             logger.error(color.WARNING + 'ERROR - {0}'.format(error) + color.ENDC)
         else:
-            print('Searching for password...')
+            print(run('Searching for password...'))
 
         sha1 = hashlib.sha1(password.encode())
         firstFive = sha1.hexdigest()[0:5].upper()
@@ -69,16 +68,16 @@ def checkPassword(numberPassword):
         else:
             s = re.search(lastChars+".*",r.text)
             if s:
-                 print(color.WARNING + 'Found a match!')
+                 print(bad(red('Found a match!')))
                  a = re.search(":.*",s.group())
-                 print("Number of occurence:", a.group()[1::]+color.ENDC)
+                 print(bad(red("Number of occurence: " + a.group()[1::])))
             else:
-                 print(color.OKGREEN + 'Password not found!'+color.ENDC)
+                 print(good(green('Password not found!')))
 
 def isInt(query):
     while True:
         try:
-             val = int(input("How many {0} do you want to check?: ".format(query)))
+             val = int(input(que("How many {0} do you want to check?: ".format(query))))
         except ValueError:
              print("That's not an int!")
              continue
@@ -86,19 +85,19 @@ def isInt(query):
 
 
 def main():
-    print("This program can check if credentials are listed in the database off Troy Hunt (pwnedpasswords.com)\n\n")
+    print(bg(orange("This program can check if credentials are listed in the database off Troy Hunt (pwnedpasswords.com)\n\n")))
     while True:
-        print("First we will check if your email is affected")
+        print(bg(orange("First we will check if your email is affected")))
         numberEmail = isInt("email adresses")
         checkEmail(numberEmail)
-        print("\nNow lets check if your password is unsafe and occurs in the database\nThe passwords you insert are hashed and only a certain part of the hash is sent to the API")
+        print(bg(orange("\nNow lets check if your password is unsafe and occurs in the database\nThe passwords you insert are hashed and only a certain part of the hash is sent to the API")))
         numberPassword = isInt("passwords")
         checkPassword(numberPassword)
-        answer = input("Do you want to continue?:")
+        answer = input(que("Do you want to continue?:"))
         if answer.lower().startswith("y"):
-            print("\nRestarting....\n\n")
+            print(run("Restarting....\n\n"))
         elif answer.lower().startswith("n"):
-            print("Adios!")
+            print(run("Adios!"))
             exit(0)
 
 
@@ -106,6 +105,6 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print('\nInterrupted by human...')
+        print(run('Interrupted by human...'))
         sys.exit(0)
 
