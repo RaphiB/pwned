@@ -10,7 +10,7 @@ import argparse
 import json
 import logging
 from huepy import *
-
+from pyfiglet import Figlet
 
 headers = {
     'User-Agent': 'python-hibpwned-checker'
@@ -85,6 +85,7 @@ def isInt(query):
 
 
 def main():
+    banner()
     print(bg(orange("This program can check if credentials are listed in the database off Troy Hunt (pwnedpasswords.com)\n\n")))
     while True:
         print(bg(orange("First we will check if your email is affected")))
@@ -101,10 +102,16 @@ def main():
             exit(0)
 
 
+def banner():
+    custom_banner = Figlet(font='graffiti')
+    print(lightred(custom_banner.renderText('pwned?')))
+
+
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
+        print('\n')
         print(run('Interrupted by human...'))
         sys.exit(0)
 
