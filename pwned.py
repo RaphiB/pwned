@@ -35,7 +35,7 @@ class color:
 """Prompts for email address a given time and  """
 def checkEmail(numberEmail):
     for i in range(int(numberEmail)):
-        email = input(que("Email adress: "))
+        email = input(que("Email address: "))
         try:
              r = requests.get('https://haveibeenpwned.com/api/v2/breachedaccount/' + email, headers=headers)
         except Exception as error:
@@ -49,6 +49,7 @@ def checkEmail(numberEmail):
                      print(bad(red("""Breach:            {Name} - Domain ({Domain}) 
     Date:              {BreachDate}
     Affected accounts: {PwnCount}\n""".format(**leaks))))
+                     time.sleep(0.25)
                  dump(email)
             else:
                  print(good(green("Your email isn\'t affected :)\n")))
@@ -61,7 +62,7 @@ def checkPassword(numberPassword):
             logger.error(color.WARNING + 'ERROR - {0}'.format(error) + color.ENDC)
         else:
             print(run('Searching for password...'))
-            time.sleep(1.5)
+            time.sleep(0.5)
 
         sha1 = hashlib.sha1(password.encode())
         firstFive = sha1.hexdigest()[0:5].upper()
@@ -73,9 +74,9 @@ def checkPassword(numberPassword):
         else:
             s = re.search(lastChars+".*",r.text)
             if s:
-                 print(bad(red('Found a match!')))
+                 print(bad(red('This password was found in the database!')))
                  a = re.search(":.*",s.group())
-                 print(bad(red("Number of occurence: " + a.group()[1::])))
+                 print(bad(red("Number of occurence: " + a.group()[1::] + "\n")))
             else:
                  print(good(green('Password not found!')))
 
@@ -85,7 +86,7 @@ def isInt(query):
         try:
              val = int(input(que("Number of {0} to check: ".format(query))))
         except ValueError:
-             print("That's not an int!")
+             print(info("That's not a number!"))
              continue
         return val
 
@@ -97,7 +98,7 @@ def main():
 You can query for email addresses and passwords. Your password will never be sent in plaintext (checks for possible password leak local).
 This tool hashes your password, sends a partial hash to the API and then receives a bunch of possible hashed candidates which eventually
 will contain your password.  \n\n"""))
-           numberEmail = isInt("email adresses")
+           numberEmail = isInt("email addresses")
            checkEmail(numberEmail)
            numberPassword = isInt("passwords")
            checkPassword(numberPassword)
@@ -119,14 +120,14 @@ def banner():
 def dump(email):
     dumplist = []
     print('\n')
-    print(run('Looking for Dumps...\n'))
+    print(run('Looking for Dumps...'))
     time.sleep(1.5)
     rq = requests.get('https://haveibeenpwned.com/api/v2/pasteaccount/{}'.format(email), headers= headers, timeout=10)
     sc = rq.status_code
     if sc != 200:
             print(good(green('[ No Dumps Found ]\n\n')))
     else:
-            print(bad(red('[ Dumps Found ]\n')))
+            print(bad('Dumps Found!\n'))
             json_out = rq.content.decode('utf-8', 'ignore')
             simple_out = json.loads(json_out)
 
@@ -135,41 +136,40 @@ def dump(email):
                             link = item['Id']
                             try:
                                     url = 'https://www.pastebin.com/raw/{}'.format(link)
-                                    page = requests.get(url, timeout=10)
+                                    page = requests.get(url, timeout=5)
                                     sc = page.status_code
                                     if sc == 200:
                                             dumplist.append(url)
-                                            print('Collecting dumps : '+str(len(dumplist)), end='\r')
+                                            print('Collecting Dumps : '+str(len(dumplist)), end='\r')
                             except requests.exceptions.ConnectionError:
                                     pass
                     elif (item['Source']) == 'AdHocUrl':
                             url = item['Id']
                             try:
-                                    page = requests.get(url, timeout=10)
+                                    page = requests.get(url, timeout=5)
                                     sc = page.status_code
                                     if sc == 200:
                                             dumplist.append(url)
-                                            print('Collecting dumps : ' + str(len(dumplist)), end='\r')
+                                            print('Collecting Dumps : ' + str(len(dumplist)), end='\r')
                             except requests.exceptions.ConnectionError:
                                     pass
 
 
     if len(dumplist) != 0:
             print('\n\n') 
-            print(bad(red(' Passwords:\n')))
+            print(run('Collecting Passwords:\n'))
             for entry in dumplist:
-                    time.sleep(1.2)
                     try:
-                            page = requests.get(entry, timeout=10)
+                            page = requests.get(entry, timeout=5)
                             dict = page.content.decode('utf-8', 'ignore')
                             passwd = re.search('{}:(\w+)'.format(email), dict)
                             if passwd:
-                                    print(bad(passwd.group(1)))
+                                    print(bad(red(passwd.group(1))))
                             elif not passwd:
                                     for line in dict.splitlines():
                                             passwd = re.search('(.*{}.*)'.format(email), line)
                                             if passwd:
-                                                    print(bad(passwd.group(0)))
+                                                    print(bad(red(passwd.group(0))))
                     except requests.exceptions.ConnectionError:
                             pass
 
