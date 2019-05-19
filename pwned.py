@@ -11,6 +11,7 @@ import json
 import logging
 from huepy import *
 from pyfiglet import Figlet
+import time
 
 headers = {
     'User-Agent': 'python-hibpwned-checker'
@@ -45,7 +46,10 @@ def checkEmail(numberEmail):
                  dic = json.loads(r.text)
                  print(bold(red("\nYour email has been found in following leaks:\n")))
                  for leaks in dic:
-                     print(bad("Breach {Name}({Domain}) has been leaked on the {BreachDate} and {PwnCount} accounts where affected.\n\n".format(**leaks)))
+                     print(bad("""Breach:            {Name} - Domain ({Domain}) 
+    Date:              {BreachDate}
+    Affected accounts: {PwnCount}\n""".format(**leaks)))
+                 dump(email)
             else:
                  print(good(green("Your email isn\'t affected :)\n")))
 
@@ -103,8 +107,67 @@ def main():
 
 
 def banner():
+    os.system('clear')
     custom_banner = Figlet(font='graffiti')
     print(lightred(custom_banner.renderText('pwned?')))
+
+def dump(email):
+    dumplist = []
+    print('\n\n')
+    print(run('Looking for Dumps...'))
+    rq = requests.get('https://haveibeenpwned.com/api/v2/pasteaccount/{}'.format(email), headers= headers, timeout=10)
+    sc = rq.status_code
+    if sc != 200:
+            print(good(green(' [ No Dumps Found ]')))
+    else:
+            print(bad(red(' [ Dumps Found ]\n')))
+            json_out = rq.content.decode('utf-8', 'ignore')
+            simple_out = json.loads(json_out)
+
+            for item in simple_out:
+                    if (item['Source']) == 'Pastebin':
+                            link = item['Id']
+                            try:
+                                    url = 'https://www.pastebin.com/raw/{}'.format(link)
+                                    page = requests.get(url, timeout=10)
+                                    sc = page.status_code
+                                    if sc == 200:
+                                            dumplist.append(url)
+                                            print('Collecting dumps : '+str(len(dumplist)), end='\r')
+                            except requests.exceptions.ConnectionError:
+                                    pass
+                    elif (item['Source']) == 'AdHocUrl':
+                            url = item['Id']
+                            try:
+                                    page = requests.get(url, timeout=10)
+                                    sc = page.status_code
+                                    if sc == 200:
+                                            dumplist.append(url)
+                                            print('Collecting dumps : ' + str(len(dumplist)), end='\r')
+                            except requests.exceptions.ConnectionError:
+                                    pass
+
+
+    if len(dumplist) != 0:
+            print('\n\n') 
+            print(bad(red(' Passwords:\n')))
+            for entry in dumplist:
+                    time.sleep(1.2)
+                    try:
+                            page = requests.get(entry, timeout=10)
+                            dict = page.content.decode('utf-8', 'ignore')
+                            passwd = re.search('{}:(\w+)'.format(email), dict)
+                            if passwd:
+                                    print(bad(passwd.group(1)))
+                            elif not passwd:
+                                    for line in dict.splitlines():
+                                            passwd = re.search('(.*{}.*)'.format(email), line)
+                                            if passwd:
+                                                    print(bad(passwd.group(0)))
+                    except requests.exceptions.ConnectionError:
+                            pass
+
+
 
 
 if __name__ == "__main__":
