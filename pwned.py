@@ -35,7 +35,7 @@ class color:
 """Prompts for email address a given time and  """
 def checkEmail(numberEmail):
     for i in range(int(numberEmail)):
-        email = input("Enter your email: ")
+        email = input(que("Email adress: "))
         try:
              r = requests.get('https://haveibeenpwned.com/api/v2/breachedaccount/' + email, headers=headers)
         except Exception as error:
@@ -46,9 +46,9 @@ def checkEmail(numberEmail):
                  dic = json.loads(r.text)
                  print(bold(red("\nYour email has been found in following leaks:\n")))
                  for leaks in dic:
-                     print(bad("""Breach:            {Name} - Domain ({Domain}) 
+                     print(bad(red("""Breach:            {Name} - Domain ({Domain}) 
     Date:              {BreachDate}
-    Affected accounts: {PwnCount}\n""".format(**leaks)))
+    Affected accounts: {PwnCount}\n""".format(**leaks))))
                  dump(email)
             else:
                  print(good(green("Your email isn\'t affected :)\n")))
@@ -61,6 +61,7 @@ def checkPassword(numberPassword):
             logger.error(color.WARNING + 'ERROR - {0}'.format(error) + color.ENDC)
         else:
             print(run('Searching for password...'))
+            time.sleep(1.5)
 
         sha1 = hashlib.sha1(password.encode())
         firstFive = sha1.hexdigest()[0:5].upper()
@@ -80,8 +81,9 @@ def checkPassword(numberPassword):
 
 def isInt(query):
     while True:
+        print('\n')
         try:
-             val = int(input(que("How many {0} do you want to check?: ".format(query))))
+             val = int(input(que("Number of {0} to check: ".format(query))))
         except ValueError:
              print("That's not an int!")
              continue
@@ -89,21 +91,24 @@ def isInt(query):
 
 
 def main():
-    banner()
-    print(bg(orange("This program can check if credentials are listed in the database off Troy Hunt (pwnedpasswords.com)\n\n")))
-    while True:
-        print(bg(orange("First we will check if your email is affected")))
-        numberEmail = isInt("email adresses")
-        checkEmail(numberEmail)
-        print(bg(orange("\nNow lets check if your password is unsafe and occurs in the database\nThe passwords you insert are hashed and only a certain part of the hash is sent to the API")))
-        numberPassword = isInt("passwords")
-        checkPassword(numberPassword)
-        answer = input(que("Do you want to continue?:"))
-        if answer.lower().startswith("y"):
-            print(run("Restarting....\n\n"))
-        elif answer.lower().startswith("n"):
-            print(run("Adios!"))
-            exit(0)
+       while True:
+           banner()
+           print(orange("""This program can check if credentials are listed in the database off Troy Hunt (pwnedpasswords.com)
+You can query for email addresses and passwords. Your password will never be sent in plaintext (checks for possible password leak local).
+This tool hashes your password, sends a partial hash to the API and then receives a bunch of possible hashed candidates which eventually
+will contain your password.  \n\n"""))
+           numberEmail = isInt("email adresses")
+           checkEmail(numberEmail)
+           numberPassword = isInt("passwords")
+           checkPassword(numberPassword)
+           print('\n')
+           answer = input(que("Restart(y/n): "))
+           if answer.lower().startswith("y"):
+               print(run("Restarting....\n\n"))
+               time.sleep(1)
+           elif answer.lower().startswith("n"):
+               print(run("Adios!"))
+               exit(0)
 
 
 def banner():
@@ -113,14 +118,15 @@ def banner():
 
 def dump(email):
     dumplist = []
-    print('\n\n')
-    print(run('Looking for Dumps...'))
+    print('\n')
+    print(run('Looking for Dumps...\n'))
+    time.sleep(1.5)
     rq = requests.get('https://haveibeenpwned.com/api/v2/pasteaccount/{}'.format(email), headers= headers, timeout=10)
     sc = rq.status_code
     if sc != 200:
-            print(good(green(' [ No Dumps Found ]')))
+            print(good(green('[ No Dumps Found ]\n\n')))
     else:
-            print(bad(red(' [ Dumps Found ]\n')))
+            print(bad(red('[ Dumps Found ]\n')))
             json_out = rq.content.decode('utf-8', 'ignore')
             simple_out = json.loads(json_out)
 
