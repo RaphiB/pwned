@@ -24,4 +24,4 @@ python ./pwned.py
 ```
 
 ## License
-This software is released under the GNU General Public License v3.0. See LICENSE.md for details.
+This software is released under the GNU General Public License v3.0.
