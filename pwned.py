@@ -20,10 +20,10 @@ headers = {
 logger = logging.getLogger(__name__)
 
 # Uncomment next line for debugging
-#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
-# Response codes can be found in the api description https://haveibeenpwned.com/API/v2 
-response_code = {200 : "Ok — everything worked and there\'s a string array of pwned sites for the account", 400 : "Bad request — the account does not comply with an acceptable format (i.e. it\'s an empty string)", 403 : "Forbidden — no user agent has been specified in the request", 404 : "Not found — the account could not be found and has therefore not been pwned", 429 : "Too many requests — the rate limit has been exceeded"}
+# Response codes can be found in the api description https://haveibeenpwned.com/API/v2
+response_code = {200 : "Ok — everything worked and there\'s a string array of pwned sites for the account", 400 : "Bad request — the account does not comply with an acceptable format (i.e. it\'s an empty string)", 403 : "Forbidden — no user agent has been specified in the request", 404 : "Not found — the account could not be found and has therefore not been pwned", 429 : "Too many requests — the rate limit has been exceeded", 401 : "You need a API key!"}
 
 
 class color:
@@ -31,7 +31,7 @@ class color:
     WARNING = '\u001b[31m'
     ENDC = '\033[0m'
 
-
+## TODO: API requires a key that you can purchase.
 """Prompts for email address a given time and  """
 def checkEmail(numberEmail):
     for i in range(int(numberEmail)):
@@ -47,11 +47,13 @@ def checkEmail(numberEmail):
                  dic = json.loads(r.text)
                  print(bold(red("\nYour email has been found in following leaks:\n")))
                  for leaks in dic:
-                     print(bad(red("""Breach:            {Name} - Domain ({Domain}) 
+                     print(bad(red("""Breach:            {Name} - Domain ({Domain})
     Date:              {BreachDate}
     Affected accounts: {PwnCount}\n""".format(**leaks))))
                      time.sleep(0.25)
                  dump(email)
+            if r.status_code == 401:
+                print("API key needed")
             else:
                  print(good(green("Your email isn\'t affected :)\n")))
 
@@ -76,7 +78,7 @@ def checkPassword(numberPassword):
         except Exception as error:
             logger.error(color.WARNING + 'ERROR - Can\'t connect to API!:\n{0}'.format(error) + color.ENDC)
         else:
-            # Search for password in the response locally 
+            # Search for password in the response locally
             s = re.search(lastChars+".*",r.text)
             if s:
                  print(bad(red('This password was found in the database!')))
@@ -126,7 +128,7 @@ def banner():
     print(lightred(custom_banner.renderText('pwned?')))
 
 
-# Find dumps for breached email  
+# Find dumps for breached email
 def dump(email):
     dumplist = []
     print('\n')
@@ -167,7 +169,7 @@ def dump(email):
 
     # Trying to find information leak of leaked email for the valid dump locations
     if len(dumplist) != 0:
-            print('\n\n') 
+            print('\n\n')
             print(run('Collecting Passwords:\n'))
             for entry in dumplist:
                     try:
@@ -194,4 +196,3 @@ if __name__ == "__main__":
         print('\n')
         print(run('Interrupted by human...'))
         sys.exit(0)
-
