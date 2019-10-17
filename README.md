@@ -2,6 +2,8 @@
 
 pwned is a Python tool to check for personal data leaks. It takes emails and passwords as input and queries Troy Hunt's haveibeenpwned.com. 
 
+API CHANGED! You now need an API key for the email queries. At the moment only password queries work.
+
 ## Security  
 
 Passwords aren't stored or sent in plaintext. The passwords you enter in this tool are hashed and only a fraction of the hash is sent to the API. 
